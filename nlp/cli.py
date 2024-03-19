@@ -19,7 +19,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, classification_report
 
 from . import clf_path, config
-
+from .classes import Request, WebScraper, Model, Media
 
 
 @click.group()
@@ -107,7 +107,6 @@ def chat():
 
     load_dotenv()
     api_key = os.getenv('OPENAI_API_KEY')
-    from openai import OpenAI
     client = OpenAI(api_key=api_key)
 
     def run_conversation():
@@ -152,10 +151,23 @@ def chat():
                 print("Sorry, I didn't understand that. Please try again and clearly specify the subject and the desired media format output.")
         
         return [media_format, subject_type, subject]
-    [media_format,subject_type,subject] = run_conversation()
+    request_list = run_conversation()
+    media_format = request_list[0]
+    subject_type = request_list[1]
+    subject = request_list[2]
     
     
     print(f"Here is the {media_format} information on the {subject_type} {subject}.")
+
+    request = Request(media_format, subject_type, subject)
+
+    web_scraper = WebScraper(request)
+    research = web_scraper.scrape()
+    model = Model(request)
+    content = model.generate(research)
+    media = Media(request)
+    output = media.generate_media(content)
+    print(output)
 
 
 
