@@ -5,17 +5,22 @@ import click
 import glob
 import pickle
 import sys
-
+import json
 import numpy as np
 import pandas as pd
 import re
 import requests
+from openai import OpenAI
+from dotenv import load_dotenv
+import os
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, classification_report
 
 from . import clf_path, config
+
+
 
 @click.group()
 def main(args=None):
@@ -93,6 +98,67 @@ def top_coef(clf, vec, labels=['liberal', 'conservative'], n=10):
     print('\n\ntop coef for %s' % labels[0])
     for i in np.argsort(clf.coef_[0])[:n]:
         print('%20s\t%.2f' % (feats[i], clf.coef_[0][i]))
+
+@main.command('chat')
+def chat():
+    """
+    Chat with the a chatgpt instance.
+    """
+
+    load_dotenv()
+    api_key = os.getenv('OPENAI_API_KEY')
+    from openai import OpenAI
+    client = OpenAI(api_key=api_key)
+
+    def run_conversation():
+        while True:
+            try:
+                message = input("What would you like to learn about? I can teach you about the state of the market, a specific stock, or a current event. Please specify if you would like the information in text, audio, or video format.\n\n")
+                messages = [{"role": "user", "content": message}]
+                tools = [
+                    {
+                        "type": "function",
+                        "function": {
+                            "name": "media_output",
+                            "description": "Determine if the user wants to learn about the general state of the market, a specific stock, or a current event, and what format the user wants the information in. If a specific stock is requested, the stock ticker should be provided. If a current event is requested, the event name should be provided. The output should be in the requested format.",
+                            "parameters": {
+                                "type": "object",
+                                "properties": {
+                                    "media_format": {"type": "string", "enum": ["text", "audio", "video"]},
+                                    "subject_type": {"type": "string", "enum": ["market","ticker","news"]},
+                                    "subject": {"type": "string"}
+                                },
+                                #"required": ["subject", "media_format", "subject_type"],
+                            },
+                        },
+                    }
+                ]
+                response = client.chat.completions.create(
+                    model="gpt-3.5-turbo-0125",
+                    messages=messages,
+                    tools=tools,
+                    tool_choice="auto",
+                    )
+                
+                response_message = response.choices[0].message
+                tool_call = response_message.tool_calls[0]
+                arguments = json.loads(tool_call.function.arguments)
+                media_format = arguments["media_format"]
+                subject_type = arguments["subject_type"]
+                subject = arguments["subject"]
+                break
+            except Exception as e:
+                print(e)
+                print("Sorry, I didn't understand that. Please try again and clearly specify the subject and the desired media format output.")
+        
+        return [media_format, subject_type, subject]
+    [media_format,subject_type,subject] = run_conversation()
+    
+    
+    print(f"Here is the {media_format} information on the {subject_type} {subject}.")
+
+
+
 
 if __name__ == "__main__":
     sys.exit(main())
