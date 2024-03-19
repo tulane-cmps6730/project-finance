@@ -35,12 +35,12 @@ def web(port):
     """
     from .app import app
     app.run(host='0.0.0.0', debug=True, port=port)
-    
+"""    
 @main.command('dl-data')
 def dl_data():
-    """
-    Download training/testing data.
-    """
+    
+    #Download training/testing data.
+    
     data_url = config.get('data', 'url')
     data_file = config.get('data', 'file')
     print('downloading from %s to %s' % (data_url, data_file))
@@ -49,14 +49,14 @@ def dl_data():
         f.write(r.text)
     
 
-def data2df():
-    return pd.read_csv(config.get('data', 'file'))
+    def data2df():
+        return pd.read_csv(config.get('data', 'file'))
 
-@main.command('stats')
-def stats():
-    """
-    Read the data files and print interesting statistics.
-    """
+    @main.command('stats')
+    def stats():
+    
+    #Read the data files and print interesting statistics.
+    
     df = data2df()
     print('%d rows' % len(df))
     print('label counts:')
@@ -64,9 +64,9 @@ def stats():
 
 @main.command('train')
 def train():
-    """
-    Train a classifier and save it.
-    """
+    
+    #Train a classifier and save it.
+    
     # (1) Read the data...
     df = data2df()    
     # (2) Create classifier and vectorizer.
@@ -98,7 +98,7 @@ def top_coef(clf, vec, labels=['liberal', 'conservative'], n=10):
     print('\n\ntop coef for %s' % labels[0])
     for i in np.argsort(clf.coef_[0])[:n]:
         print('%20s\t%.2f' % (feats[i], clf.coef_[0][i]))
-
+"""
 @main.command('chat')
 def chat():
     """
