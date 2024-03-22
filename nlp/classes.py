@@ -1,7 +1,15 @@
 from typing import Any, Text
 from openai import OpenAI
 from dotenv import load_dotenv
+from pathlib import Path
+from stability_sdk import api
+from stability_sdk.animation import AnimationArgs, Animator
+from stability_sdk.utils import create_video_from_frames
+from tqdm import tqdm
+from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
+import math
 import os
+
 
 
 class Request():
@@ -60,10 +68,62 @@ class Media():
     def __init__(self, request: Request):
         self.request = request
     
+    
+    def api_context(self):
+        load_dotenv()
+        STABILITY_HOST = "grpc.stability.ai:443"
+        openai_api_key = os.getenv('OPENAI_API_KEY')
+        STABILITY_KEY = os.getenv('STABILITY_KEY')
+        
+        stability_context = api.Context(STABILITY_HOST, STABILITY_KEY)
+        openai_client = OpenAI(api_key=openai_api_key)
+        return stability_context, openai_client
+    
+    def generate_audio(self, content: Text, openai_client: OpenAI):
+        speech_file_path = Path(__file__).parent / "speech.mp3"
+        response = openai_client.audio.speech.create(
+            model="tts-1",
+            voice="alloy",
+            input=content,
+        )
+        response.stream_to_file(speech_file_path)
+        return speech_file_path
+    
+
+    def generate_frames(self, content: Text, stability_context: api.Context):
+        args = AnimationArgs()
+        animation_prompts = {
+            0: content,
+        }
+        negative_prompt = ""
+        animator = Animator(
+            api_context=stability_context,
+            animation_prompts=animation_prompts,
+            negative_prompt=negative_prompt,
+            args=args,
+            out_dir="video_01"
+            )
+        for _ in tqdm(animator.render(), total=args.max_frames):
+            pass
+        return animator.out_dir
+    
     def generate_media(self, content: Text):
+        
+        stability_context, openai_client = self.api_context()
+        
         if self.request.media_format == "text":
             return content
-        elif self.request.media_format == "audio":
-            return "audio file" #replace with actual audio file
-        elif self.request.media_format == "video":
-            return "video file" #replace with actual video file
+        
+        if self.request.media_format == "audio":
+            return self.generate_audio(content, openai_client)
+        
+        if self.request.media_format == "video":
+            out_dir = self.generate_frames(content, stability_context)
+
+            create_video_from_frames(out_dir, "video.mp4", fps=24)
+        
+    
+        
+    
+
+        
