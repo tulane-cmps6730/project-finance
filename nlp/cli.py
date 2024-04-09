@@ -170,6 +170,22 @@ def chat():
     print(output)
 
 
+@main.command('debug')
+def debug():
+    """
+    Debug the chat function.
+    """
+    request = Request("video", "ticker", "AAPL")
+
+    web_scraper = WebScraper(request)
+    research = web_scraper.scrape()
+    model = Model(request)
+    content = model.generate(research)
+    media = Media(request)
+    output = media.generate_media(content)
+    
+
+
 
 
 if __name__ == "__main__":

@@ -50,7 +50,7 @@ class Model():
         if self.request.media_format == "text":
             message_format = "Format this summary in the style of a morning brew newsletter"
         elif self.request.media_format == "audio":
-            message_format = "Format this summary as a script for a podcast"
+            message_format = "Format this summary as a script for a podcast. Make it very casual and conversational. Include phrases like umm and uhh to make it sound more natural. Add breaths where natural."
         elif self.request.media_format == "video":
             message_format = "Format this summary as a script for an informative video."
         
@@ -67,6 +67,10 @@ class Model():
 class Media():
     def __init__(self, request: Request):
         self.request = request
+        self.base_dir = Path(__file__).parent  # Base directory for the script
+        self.output_dir = self.base_dir / "output"  # Define a specific output directory
+        self.output_dir.mkdir(exist_ok=True)  # Create the output directory if it doesn't exist
+    
     
     
     def api_context(self):
@@ -80,17 +84,19 @@ class Media():
         return stability_context, openai_client
     
     def generate_audio(self, content: Text, openai_client: OpenAI):
-        speech_file_path = Path(__file__).parent / "speech.mp3"
+        speech_file_path = self.output_dir / "speech.mp3"
         response = openai_client.audio.speech.create(
             model="tts-1",
-            voice="alloy",
+            voice="onyx",
             input=content,
         )
-        response.stream_to_file(speech_file_path)
+        response.stream_to_file(str(speech_file_path))
         return speech_file_path
     
 
     def generate_frames(self, content: Text, stability_context: api.Context):
+        frames_dir = self.output_dir / "video_frames"
+        frames_dir.mkdir(exist_ok=True)  # Ensure the directory exists
         args = AnimationArgs()
         animation_prompts = {
             0: content,
@@ -101,26 +107,66 @@ class Media():
             animation_prompts=animation_prompts,
             negative_prompt=negative_prompt,
             args=args,
-            out_dir="video_01"
+            out_dir=str(frames_dir),
             )
         for _ in tqdm(animator.render(), total=args.max_frames):
             pass
-        return animator.out_dir
+        return frames_dir
+    
+
+    def combine_audio_video(self, audio_path, video_path, output_filename):
+        # Load the video and audio files
+        video_clip = VideoFileClip(str(video_path))
+        audio_clip = AudioFileClip(str(audio_path))
+
+        # Calculate how many times the video needs to be looped
+        loop_count = math.ceil(audio_clip.duration / video_clip.duration)
+
+        # Loop the video clip
+        looped_video_clip = concatenate_videoclips([video_clip] * loop_count)
+
+        # Set the looped video clip's audio to the audio clip
+        final_clip = looped_video_clip.set_audio(audio_clip)
+
+        # Write the result to a file
+        output_path = self.output_dir / output_filename
+        final_clip.write_videofile(output_filename, codec='libx264', audio_codec='aac')
+
+        return output_path
+   
     
     def generate_media(self, content: Text):
         
         stability_context, openai_client = self.api_context()
         
         if self.request.media_format == "text":
-            return content
+            text_path = self.output_dir / "news.txt"
+            with open(text_path, "w") as f:
+                f.write(content)
+            return text_path
         
         if self.request.media_format == "audio":
-            return self.generate_audio(content, openai_client)
+            audio_path = self.generate_audio(content, openai_client)
+            return audio_path
         
         if self.request.media_format == "video":
-            out_dir = self.generate_frames(content, stability_context)
+            video_path = self.output_dir / "video.mp4"
+            #frames_dir = self.generate_frames(content, stability_context)
+            frames_dir = self.output_dir / "video_frames"
+            create_video_from_frames(frames_dir, str(video_path), fps=24)
 
-            create_video_from_frames(out_dir, "video.mp4", fps=24)
+            audio_path = self.generate_audio(content, openai_client)
+
+            output_path = self.output_dir / "combined_video.mp4"
+
+            
+        
+            return self.combine_audio_video(str(audio_path), str(video_path), str(output_path))
+        
+
+
+
+            
         
     
         
