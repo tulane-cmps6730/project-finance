@@ -11,4 +11,4 @@ tensorflow>=2.0.0
 WTForms>=2.2.1
 openai>=1.14.2
 python-dotenv>=1.0.1
-
+yfinance>=0.1.54
