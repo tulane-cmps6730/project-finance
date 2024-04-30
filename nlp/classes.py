@@ -312,3 +312,25 @@ class Media:
             return self.combine_audio_video(
                 str(audio_path), str(video_path), str(output_path)
             )"""
+
+class Chat:
+    def __init__(self) -> None:
+        self.PERSIST_DIR = "./nlp/storage"
+        # check if storage already exists
+        if not os.path.exists(self.PERSIST_DIR):
+            # load the documents and create the index
+            RESEARCH_DIR = "./nlp/research"
+            self.documents = SimpleDirectoryReader(RESEARCH_DIR).load_data()
+            self.index = VectorStoreIndex.from_documents(self.documents)
+            # store it for later
+            self.index.storage_context.persist(persist_dir=self.PERSIST_DIR)
+        else:
+            # load the existing index
+            self.storage_context = StorageContext.from_defaults(persist_dir=self.PERSIST_DIR)
+            self.index = load_index_from_storage(self.storage_context)
+
+    # Either way we can now query the index
+    def query(self, query):
+        query_engine = self.index.as_query_engine()
+        response = query_engine.query(query)
+        return response
