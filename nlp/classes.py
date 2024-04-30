@@ -320,12 +320,13 @@ class Media:
 
 
 class Conversation:
-    def __init__(self) -> None:
-        self.PERSIST_DIR = "./nlp/storage"
+    def __init__(self) -> None:      
+        self.BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+        self.PERSIST_DIR = os.path.join(self.BASE_DIR, "storage")
+        self.RESEARCH_DIR = os.path.join(self.BASE_DIR, "research")
 
         if not os.path.exists(self.PERSIST_DIR):
-            RESEARCH_DIR = "research"
-            self.documents = SimpleDirectoryReader(RESEARCH_DIR).load_data()
+            self.documents = SimpleDirectoryReader(self.RESEARCH_DIR).load_data()
             self.index = VectorStoreIndex.from_documents(self.documents)
 
             self.index.storage_context.persist(persist_dir=self.PERSIST_DIR)
