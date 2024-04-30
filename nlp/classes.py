@@ -1,11 +1,11 @@
 from typing import Any, Text
 from openai import OpenAI
 from pathlib import Path
-from stability_sdk import api
-from stability_sdk.animation import AnimationArgs, Animator
-from stability_sdk.utils import create_video_from_frames
+#from stability_sdk import api
+#from stability_sdk.animation import AnimationArgs, Animator
+#from stability_sdk.utils import create_video_from_frames
 from tqdm import tqdm
-from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
+#from moviepy.editor import VideoFileClip, AudioFileClip, concatenate_videoclips
 import math
 import json
 import yfinance as yf
@@ -52,7 +52,7 @@ class ApiContext:
     def __init__(self, openai_api_key, stability_api_key, stability_host):
         self.openai_api_key = openai_api_key
         self.client = OpenAI(api_key=openai_api_key)
-        self.stability_context = api.Context(stability_host, stability_api_key)
+        #self.stability_context = api.Context(stability_host, stability_api_key)
 
 
 class Request:
@@ -236,7 +236,6 @@ class Media:
             exist_ok=True
         )  # Create the output directory if it doesn't exist
         self.client = api_context.client
-        self.stability_context = api_context.stability_context
         self.content = content
         self.animation_prompt = animation_prompt
 
@@ -250,7 +249,7 @@ class Media:
         response.stream_to_file(str(speech_file_path))
         return speech_file_path
 
-    def generate_frames(self):
+    """def generate_frames(self):
         frames_dir = self.output_dir / "video_frames"
         frames_dir.mkdir(exist_ok=True)  # Ensure the directory exists
         args = AnimationArgs()
@@ -312,4 +311,4 @@ class Media:
 
             return self.combine_audio_video(
                 str(audio_path), str(video_path), str(output_path)
-            )
+            )"""

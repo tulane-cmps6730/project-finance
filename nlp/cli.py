@@ -94,10 +94,10 @@ def debug():
         stability_host=STABILITY_HOST,
     )
 
-    request_params = ("video", "ticker", "AAPL")
+    request_params = ("audio", "ticker", "AAPL")
 
-    # web_scraper = WebScraper(request_params)
-    research = "/Users/zacharywiel/Documents/NLP/project-finance/nlp/research/AAPL.json"
+    #web_scraper = WebScraper(request_params)
+    research = '/Users/alex/Desktop/Tulane/S24/Repos/NLPP/project-finance/nlp/research/AAPL.json'
 
     model = Model(research, request_params, api)
     [content, animation_prompt] = model.generate()
@@ -105,7 +105,7 @@ def debug():
     print(animation_prompt)
 
     media = Media(content, animation_prompt, request_params, api)
-    output = media.generate_media()
+    output = media.generate_audio()
 
     # print(output)
 
