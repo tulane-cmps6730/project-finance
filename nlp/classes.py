@@ -19,31 +19,21 @@ from llama_index.core import (
     load_index_from_storage,
 )
 
-input_prompt = "What would you like to learn about? I can teach you about the state of the market, a specific stock, or a current event. Please specify if you would like the information in text, audio, or video format.\n\n"
+input_prompt = "What stock would you like to learn about? Please specify if you would like the information in text, audio, or video format.\n\n"
 
 conversation_function = {
     "type": "function",
     "function": {
         "name": "media_output",
-        "description": "Determine if the user wants to learn about the general state of the market, a specific stock, or a current event, and what format the user wants the information in. If a specific stock is requested, the stock ticker should be provided. If a current event is requested, the event name should be provided. The output should be in the requested format.",
+        "description": "If a specific stock is requested, the stock ticker should be provided. The output should be in the requested format as either text, video, or audio.",
         "parameters": {
             "type": "object",
             "properties": {
                 "media_format": {"type": "string", "enum": ["text", "audio", "video"]},
-                "subject_type": {
-                    "type": "string",
-                    "enum": ["market", "ticker", "news"],
-                },
                 "subject": {"type": "string"},
             },
         },
     },
-}
-
-subject_type_prompt = {
-    "market": "Based on the following reasearch articles, summarize if {} is doing well.",
-    "ticker": "Based on the following reasearch articles, summarize if {} is doing well.",
-    "news": "Based on the following reasearch articles, summarize the state of {}.",
 }
 
 media_format_prompt = {
@@ -65,11 +55,10 @@ class ApiContext:
 class Request:
     def __init__(self, api_context: ApiContext):
         self.client = api_context.client
-
-    def process_request(self):
+    
+    def process_request(self, message):
         while True:
             try:
-                message = input(input_prompt)
                 messages = [{"role": "user", "content": message}]
                 tools = [conversation_function]
                 response = self.client.chat.completions.create(
@@ -84,28 +73,27 @@ class Request:
                 arguments = json.loads(tool_call.function.arguments)
 
                 media_format = arguments["media_format"]
-                subject_type = arguments["subject_type"]
                 subject = arguments["subject"]
 
-                break
+                print(f"Here is the {media_format} information on {subject}.")
+                return [media_format, subject]
 
             except Exception as e:
                 print(e)
                 print(
-                    "Sorry, I didn't understand that. Please try again and clearly specify the subject and the desired media format output."
+                    "Sorry, I didn't understand that. Please try again and clearly specify the ticker and the desired media format output."
                 )
+            
 
-            print(
-                f"Here is the {media_format} information on the {subject_type} {subject}."
-            )
-
-            return [media_format, subject_type, subject]
+            
+    
+    def route_request(self):
+        return self.process_request(input(input_prompt))
 
 
 class WebScraper:
     def __init__(self, request_params: list):
-        self.subject_type = request_params[1]
-        self.subject = request_params[2]
+        self.subject = request_params[1]
         self.base_dir = Path(__file__).parent
         self.research_dir = self.base_dir / "research"
         self.research_dir.mkdir(exist_ok=True)
@@ -168,33 +156,28 @@ class WebScraper:
             json.dump(data, file, ensure_ascii=False, indent=4)
 
     def scrape(self):
-        if self.subject_type == "market":
-            return "market research"
-
-        if self.subject_type == "ticker":
-            ticker = self.subject
-            news_articles = self.get_news_articles(ticker)
-            research_path = self.research_dir / f"{ticker}.json"
-            self.save_to_json(news_articles, research_path)
-            print("News articles saved to JSON.")
-            return research_path
-
-        if self.subject_type == "news":
-            return "news research"
+        ticker = self.subject
+        news_articles = self.get_news_articles(ticker)
+        research_path = self.research_dir / f"{ticker}.json"
+        self.save_to_json(news_articles, research_path)
+        print("News articles saved to JSON.")
+        return research_path
 
 
 class Model:
     def __init__(self, research: str, request_params: list, api_context: ApiContext):
         with open(research, "r", encoding="utf-8") as file:
             self.research = file.read()
+            self.subject = request_params[1]
+            self.media_format = request_params[0]
 
         self.request = request_params
         self.client = api_context.client
 
     def generate_script(self) -> str:
 
-        message_subject = subject_type_prompt[self.request[1]].format(self.request[2])
-        message_format = media_format_prompt[self.request[0]]
+        message_subject = "Based on the following reasearch articles, summarize if {} is doing well.".format(self.subject)
+        message_format = media_format_prompt[self.media_format]
 
         message_thread = (
             message_subject + message_format + "\n###\n" + self.research + "\n###"
@@ -222,13 +205,13 @@ class Model:
         return [animation_script, animation_prompt]
 
     def generate(self) -> list:
-        if self.request[0] == "text":
+        if self.media_format == "text":
             return [self.generate_script(), None]
 
-        if self.request[0] == "audio":
+        if self.media_format == "audio":
             return [self.generate_script(), None]
 
-        if self.request[0] == "video":
+        if self.media_format == "video":
             return self.generate_animation_prompt()
 
 
@@ -236,7 +219,7 @@ class Media:
     def __init__(
         self, content, animation_prompt, request_params: list, api_context: ApiContext
     ):
-        self.request = request_params
+        self.media_format = request_params[0]
         self.base_dir = Path(__file__).parent
         self.output_dir = self.base_dir / "output"
         self.output_dir.mkdir(
@@ -294,17 +277,17 @@ class Media:
         return output_path
 
     def generate_media(self):
-        if self.request[0] == "text":
+        if self.media_format == "text":
             text_path = self.output_dir / "news.txt"
             with open(text_path, "w") as f:
                 f.write(self.content)
             return text_path
 
-        if self.request[0] == "audio":
+        if self.media_format == "audio":
             audio_path = self.generate_audio()
             return audio_path
 
-        if self.request[0] == "video":
+        if self.media_format == "video":
             audio_path = self.generate_audio()
 
             video_path = self.output_dir / "video.mp4"

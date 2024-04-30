@@ -63,7 +63,7 @@ def chat():
     )
 
     request = Request(api)
-    request_params = request.process_request()
+    request_params = request.route_request()
 
     web_scraper = WebScraper(request_params)
     research = web_scraper.scrape()
