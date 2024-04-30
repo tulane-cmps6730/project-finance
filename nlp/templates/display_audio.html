@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <title>Audio Content</title>
+    </head>
+    <body>
+        <h1>Audio Output</h1>
+        <audio controls>
+            <source
+                src="{{ url_for('static', filename='speech.mp3') }}"
+                type="audio/mp3"
+            />
+            Your browser does not support the audio element.
+        </audio>
+        <form action="{{ url_for('handle_question') }}" method="post"></form>
+            <input type="text" name="query" placeholder="Enter your question here" required>
+            <button type="submit">Ask</button>
+        </form>
+    </body>
+</html>

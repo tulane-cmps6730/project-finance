@@ -1,0 +1,25 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Request Form</title>
+    </head>
+    <body>
+        <h1>Submit Your Request</h1>
+        <form action="/process" method="post">
+            <label for="ticker">Ticker Symbol:</label>
+            <input type="text" id="ticker" name="ticker" required /><br /><br />
+
+            <label for="media_type">Media Type:</label>
+            <select id="media_type" name="media_type" required>
+                <option value="text">Text</option>
+                <option value="audio">Audio</option>
+                <option value="video">Video</option></select
+            ><br /><br />
+
+            <input type="submit" value="Submit" />
+        </form>
+    </body>
+</html>

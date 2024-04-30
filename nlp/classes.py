@@ -106,7 +106,7 @@ class WebScraper:
     def __init__(self, request_params: list):
         self.subject_type = request_params[1]
         self.subject = request_params[2]
-        self.base_dir = Path(__file__).parent  # Base directory for the script
+        self.base_dir = Path(__file__).parent
         self.research_dir = self.base_dir / "research"
         self.research_dir.mkdir(exist_ok=True)
 
@@ -121,7 +121,7 @@ class WebScraper:
                 response = requests.get(
                     url, headers={"User-Agent": "Mozilla/5.0"}, allow_redirects=True
                 )
-                final_url = response.url  # Capture the final URL after any redirects
+                final_url = response.url
                 if response.status_code == 200:
                     soup = BeautifulSoup(response.text, "html.parser")
                     article_content = soup.find(
@@ -237,11 +237,11 @@ class Media:
         self, content, animation_prompt, request_params: list, api_context: ApiContext
     ):
         self.request = request_params
-        self.base_dir = Path(__file__).parent  # Base directory for the script
-        self.output_dir = self.base_dir / "output"  # Define a specific output directory
+        self.base_dir = Path(__file__).parent
+        self.output_dir = self.base_dir / "output"
         self.output_dir.mkdir(
             exist_ok=True
-        )  # Create the output directory if it doesn't exist
+        ) 
         self.client = api_context.client
         self.stability_context = api_context.stability_context
         self.content = content
@@ -259,7 +259,7 @@ class Media:
 
     def generate_frames(self):
         frames_dir = self.output_dir / "video_frames"
-        frames_dir.mkdir(exist_ok=True)  # Ensure the directory exists
+        frames_dir.mkdir(exist_ok=True)
         args = AnimationArgs()
         animation_prompts = {
             0: self.animation_prompt,
@@ -277,20 +277,17 @@ class Media:
         return frames_dir
 
     def combine_audio_video(self, audio_path, video_path, output_filename):
-        # Load the video and audio files
+
         video_clip = VideoFileClip(str(video_path))
         audio_clip = AudioFileClip(str(audio_path))
 
-        # Calculate how many times the video needs to be looped
+
         loop_count = math.ceil(audio_clip.duration / video_clip.duration)
 
-        # Loop the video clip
         looped_video_clip = concatenate_videoclips([video_clip] * loop_count)
 
-        # Set the looped video clip's audio to the audio clip
         final_clip = looped_video_clip.set_audio(audio_clip)
 
-        # Write the result to a file
         output_path = self.output_dir / output_filename
         final_clip.write_videofile(output_filename, codec="libx264", audio_codec="aac")
 
@@ -325,20 +322,19 @@ class Media:
 class Conversation:
     def __init__(self) -> None:
         self.PERSIST_DIR = "./nlp/storage"
-        # check if storage already exists
+
         if not os.path.exists(self.PERSIST_DIR):
-            # load the documents and create the index
-            RESEARCH_DIR = "./nlp/research"
+            RESEARCH_DIR = "research"
             self.documents = SimpleDirectoryReader(RESEARCH_DIR).load_data()
             self.index = VectorStoreIndex.from_documents(self.documents)
-            # store it for later
+
             self.index.storage_context.persist(persist_dir=self.PERSIST_DIR)
         else:
-            # load the existing index
+
             self.storage_context = StorageContext.from_defaults(persist_dir=self.PERSIST_DIR)
             self.index = load_index_from_storage(self.storage_context)
 
-    # Either way we can now query the index
+
     def query(self, query):
         query_engine = self.index.as_query_engine()
         response = query_engine.query(query)
