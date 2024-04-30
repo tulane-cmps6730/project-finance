@@ -7,6 +7,16 @@
     <body>
         <h1>Answer to Your Question</h1>
         <p>{{ answer }}</p>
+        <!-- Form to ask another question -->
+        <form action="/handle_question" method="post">
+            <input
+                type="text"
+                name="query"
+                placeholder="Have another question? Ask here!"
+                required
+            />
+            <button type="submit">Ask</button>
+        </form>
         <a href="/">Back to Home</a>
     </body>
 </html>

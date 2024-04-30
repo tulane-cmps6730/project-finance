@@ -1,10 +1,13 @@
 from flask import Flask, request, jsonify, render_template
-from classes import ApiContext, Request, WebScraper, Model, Media, Conversation
+from .classes import ApiContext, Request, WebScraper, Model, Media, Conversation
 import os
 from dotenv import load_dotenv
 
 load_dotenv()
-app = Flask(__name__, static_folder='/Users/zacharywiel/Documents/NLP/project-finance/nlp/output')
+
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+app = Flask(__name__, static_folder=os.path.join(BASE_DIR, 'output'))
 
 
 
@@ -42,9 +45,8 @@ def process_request():
 
 @app.route('/display/<media_type>')
 def display_media(media_type):
-    base_dir = "/Users/zacharywiel/Documents/NLP/project-finance/nlp/output"
     if media_type == 'text':
-        file_path = os.path.join(base_dir, 'news.txt')
+        file_path = os.path.join(BASE_DIR, 'news.txt')
         with open(file_path, 'r') as file:
             content = file.read()
         return render_template('display_text.html', content=content)
@@ -67,6 +69,5 @@ def handle_question():
     print("Answer generated:", answer)
     return render_template('display_answer.html', answer=answer)
 
-
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', port=3000, debug=True)
+    app.run(debug=True)
