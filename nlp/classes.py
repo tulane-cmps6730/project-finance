@@ -11,6 +11,12 @@ import json
 import yfinance as yf
 import requests
 from bs4 import BeautifulSoup
+from llama_index.core import (
+    VectorStoreIndex,
+    SimpleDirectoryReader,
+    StorageContext,
+    load_index_from_storage,
+)
 
 input_prompt = "What would you like to learn about? I can teach you about the state of the market, a specific stock, or a current event. Please specify if you would like the information in text, audio, or video format.\n\n"
 
