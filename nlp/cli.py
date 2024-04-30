@@ -10,7 +10,6 @@ import numpy as np
 import pandas as pd
 import re
 import requests
-from openai import OpenAI
 from dotenv import load_dotenv
 import os
 from sklearn.feature_extraction.text import CountVectorizer
@@ -19,7 +18,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, classification_report
 
 from . import clf_path, config
-from .classes import ApiContext, Request, WebScraper, Model, Media, Chat
+from .classes import ApiContext, Request, WebScraper, Model, Media, Conversation
 
 
 @click.group()
@@ -33,7 +32,7 @@ def main(args=None):
     "-p",
     "--port",
     required=False,
-    default=5000,
+    default=3000,
     show_default=True,
     help="port of web server",
 )
@@ -107,8 +106,8 @@ def debug():
     #media = Media(content, animation_prompt, request_params, api)
     #output = media.generate_media()
 
-    chat = Chat()
-    answer = chat.query(input("Enter a query: "))
+    conversation = Conversation()
+    answer = conversation.query(input("Enter a query: "))
 
     print(answer)
 

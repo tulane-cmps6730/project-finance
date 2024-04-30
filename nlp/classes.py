@@ -322,7 +322,7 @@ class Media:
             )
 
 
-class Chat:
+class Conversation:
     def __init__(self) -> None:
         self.PERSIST_DIR = "./nlp/storage"
         # check if storage already exists

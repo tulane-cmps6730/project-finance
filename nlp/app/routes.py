@@ -3,8 +3,6 @@ from . import app
 from .forms import MyForm
 from .. import clf_path
 
-
-
 @app.route('/', methods=['GET', 'POST'])
 @app.route('/index', methods=['GET', 'POST'])
 def index():
