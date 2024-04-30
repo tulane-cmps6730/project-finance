@@ -19,7 +19,7 @@ from sklearn.model_selection import StratifiedKFold
 from sklearn.metrics import accuracy_score, classification_report
 
 from . import clf_path, config
-from .classes import ApiContext, Request, WebScraper, Model, Media
+from .classes import ApiContext, Request, WebScraper, Model, Media, Chat
 
 
 @click.group()
@@ -99,15 +99,18 @@ def debug():
     # web_scraper = WebScraper(request_params)
     research = "/Users/zacharywiel/Documents/NLP/project-finance/nlp/research/AAPL.json"
 
-    model = Model(research, request_params, api)
-    [content, animation_prompt] = model.generate()
-    print(content)
-    print(animation_prompt)
+    #model = Model(research, request_params, api)
+    #[content, animation_prompt] = model.generate()
+    #print(content)
+    #print(animation_prompt)
 
-    media = Media(content, animation_prompt, request_params, api)
-    output = media.generate_media()
+    #media = Media(content, animation_prompt, request_params, api)
+    #output = media.generate_media()
 
-    # print(output)
+    chat = Chat()
+    answer = chat.query(input("Enter a query: "))
+
+    print(answer)
 
 
 if __name__ == "__main__":
