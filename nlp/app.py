@@ -30,7 +30,7 @@ import os
 def process_request():
     ticker = request.form['ticker']
     media_type = request.form['media_type']
-    request_params = (media_type, 'ticker', ticker)
+    request_params = (media_type, ticker)
 
 
     web_scraper = WebScraper(request_params)
@@ -45,8 +45,9 @@ def process_request():
 
 @app.route('/display/<media_type>')
 def display_media(media_type):
+    text_dir = os.path.join(BASE_DIR, 'output')
     if media_type == 'text':
-        file_path = os.path.join(BASE_DIR, 'news.txt')
+        file_path = os.path.join(text_dir, 'news.txt')
         with open(file_path, 'r') as file:
             content = file.read()
         return render_template('display_text.html', content=content)

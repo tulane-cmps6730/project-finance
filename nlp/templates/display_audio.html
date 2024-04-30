@@ -13,8 +13,13 @@
             />
             Your browser does not support the audio element.
         </audio>
-        <form action="{{ url_for('handle_question') }}" method="post"></form>
-            <input type="text" name="query" placeholder="Enter your question here" required>
+        <form action="{{ url_for('handle_question') }}" method="post">
+            <input
+                type="text"
+                name="query"
+                placeholder="Enter your question here"
+                required
+            />
             <button type="submit">Ask</button>
         </form>
     </body>
