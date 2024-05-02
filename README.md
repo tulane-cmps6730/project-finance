@@ -17,21 +17,28 @@ To get started with CFMN-CG, follow these steps to set up the project on your lo
 
 ### Clone the Repository
 git clone https://github.com/tulane-cmps6730/project-finance.git
+
 cd project-finance
 
 ### Set up a Virtual Environment (Optional but recommended)
 python -m venv venv
+
 source venv/bin/activate
 
 ### Install Dependencies
 pip install -r requirements.txt
 
+### Install Code
+python setup.py develop
+
 ### Set Environment Variables
 Create a .env file in the root directory and populate it with necessary API keys and configurations:
 STABILITY_KEY=your_stability_api_key_here
+
 OPENAI_API_KEY=your_openai_api_key_here
 
 ### Start the project
 nlp web - flask app
+
 nlp chat - CLI tool 
 
