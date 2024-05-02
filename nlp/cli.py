@@ -76,6 +76,10 @@ def chat():
 
     print(output)
 
+    conversation = Conversation()
+    answer = conversation.query(input("Any questions?"))
+    print(answer)
+
 
 @main.command("debug")
 def debug():
